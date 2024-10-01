@@ -42,6 +42,8 @@ public class stackApp {
             else if (s.equals("-")) op.add("-");
             else if (s.equals("*")) op.add("*");
             else if (s.equals("/")) op.add("/");
+            else if (s.equals("^")) op.add("^");
+            else if (s.equals("%")) op.add("%");
             else if (s.equals(")")) {
                 Double v1 = values.removeLast();
                 Double v2 = values.removeLast();
@@ -50,6 +52,8 @@ public class stackApp {
                 else if(operator.equals("-")) values.add(v2 - v1);
                 else if(operator.equals("*")) values.add(v2 * v1);
                 else if(operator.equals("/")) values.add(v2 / v1);
+                else if(operator.equals("^")) values.add(Math.pow(v2, v1));
+                else if(operator.equals("%")) values.add(v2 % v1);
             }
             else values.add(Double.parseDouble(s));
         }
@@ -67,7 +71,7 @@ public class stackApp {
                 continue; // Skip whitespace
             }
             String token = String.valueOf(c);
-            if (Character.isDigit(c) || (c == '.' && currentNumber.length() > 0 && Character.isDigit(currentNumber.charAt(currentNumber.length() - 1)))) {
+            if (Character.isDigit(c) || (c == '.')) {
                 currentNumber.append(c);
             } else {
                 if (currentNumber.length() > 0) {
@@ -75,8 +79,11 @@ public class stackApp {
                     currentNumber.setLength(0); // Reset for next number
                 }
 
-                if ("*/+-".contains(token)) {
+                if ("*/+-^%".contains(token)) {
                     while (!operators.isEmpty() && precedence(operators.peek()) >= precedence(token)) {
+                        if (output.size() < 2 ) {
+                            return "ERROR";
+                        }
                         String op = operators.pop();
                         String right = output.remove(output.size() - 1);
                         String left = output.remove(output.size() - 1);
@@ -87,6 +94,9 @@ public class stackApp {
                     operators.push(token);
                 } else if (token.equals(")")) {
                     while (!operators.isEmpty() && !operators.peek().equals("(")) {
+                        if (output.size() < 2 ) {
+                            return "ERROR";
+                        }
                         String op = operators.pop();
                         String right = output.remove(output.size() - 1);
                         String left = output.remove(output.size() - 1);
@@ -104,6 +114,9 @@ public class stackApp {
 
         // Process remaining operators in the stack
         while (!operators.isEmpty()) {
+            if (output.size() < 2 ) {
+                return "";
+            }
             String op = operators.pop();
             String right = output.remove(output.size() - 1);
             String left = output.remove(output.size() - 1);
@@ -125,7 +138,10 @@ public class stackApp {
                 return 1;
             case "*":
             case "/":
+            case "%":
                 return 2;
+            case "^":
+                return 3; // Power operator has the highest precedence
             default:
                 return 0;
         }
@@ -134,6 +150,7 @@ public class stackApp {
     public static String ArithmaticCalc(String expr) {
         String parsedExpr = parseString(expr);
         if (parenthesized(parsedExpr) && !parsedExpr.equals("")) {
+            System.out.println("Cleaned expression: " + parsedExpr);
             return String.valueOf(evaluate(parsedExpr));
         }
         else {
@@ -148,7 +165,7 @@ public class stackApp {
         Scanner reader = new Scanner(System.in);
 
         System.out.println("         o                       o     o       o                  __o__                                      \n" +"        <|>                    _<|>_  <|>     <|>                   |                                        \n" +"        / \\                          < >     / >                  / \\                                       \n" +"      o/   \\o       \\o__ __o     o     |      \\o__ __o             \\o/      o__ __o/   o      o     o__ __o/ \n" +"     <|__ __|>       |     |>   <|>    o__/_   |     v\\             |      /v     |   <|>    <|>   /v     |  \n" +"     /       \\      / \\   < >   / \\    |      / \\     <\\           < >    />     / \\  < >    < >  />     / \\ \n" +"   o/         \\o    \\o/         \\o/    |      \\o/     o/   \\        |     \\      \\o/   \\o    o/   \\      \\o/ \n" +"  /v           v\\    |           |     o       |     <|     o       o      o      |     v\\  /v     o      |  \n" +" />             <\\  / \\         / \\    <\\__   / \\    / \\    <\\__ __/>      <\\__  / \\     <\\/>      <\\__  / \\ \n");
-        System.out.println("☆ Supports any arithmetic expression (+-*/) ☆ \n");
+        System.out.println("☆ Supports any arithmetic expression (+-*/^%) ☆ \n");
         while (true) {
             System.out.println("ׂ╰┈➤ Enter equation or type \"Exit\"");
             String expr = reader.nextLine();
